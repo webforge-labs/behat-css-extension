@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": ">=7.2",
-    "hamcrest/hamcrest-php": "^rea2.0",
+    "hamcrest/hamcrest-php": "^2.0",
     "behat/mink-extension": "*",
     "behat/mink-selenium2-driver": "*",
     "symfony/css-selector": "*"
