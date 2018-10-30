@@ -66,14 +66,6 @@ class MyFeatureContext extends MinkContext implements Context
         $this->context('.v-btn:contains("Überschrift ablösen")')->exists()->click();
     }
     
-   /**
-     * @When /^I click on the position button$/
-     */
-    public function iClickOnThePositionButton()
-    {
-        $this->context('.v-btn:contains("Position")')->exists()->click();
-    }
-
     /**
      * @Given /^the headline is displayed in text$/
      */
