@@ -469,6 +469,7 @@ class CssElement
      * Asserts that substr is in the text value
      *
      * @param string $substr
+     * @return CssElement
      */
     public function containsText($substr)
     {
@@ -477,6 +478,8 @@ class CssElement
             $this->getText(),
             Matchers::containsString($substr)
         );
+
+        return $this;
     }
 
     /**
