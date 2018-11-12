@@ -119,9 +119,9 @@ class CssElement
     /**
      * @return NodeElement|NULL
      */
-    public function getElement()
+    public function getElement($refresh = false)
     {
-        if (!isset($this->element)) {
+        if (!isset($this->element) || $refresh) {
             $this->element = $this->contextElement()->find(self::MINK_SELECTOR, $this->subSelector);
         }
 
@@ -523,12 +523,12 @@ class CssElement
     {
         $time = $time ?: $this->defaultTimeout;
 
-        $result = $this->waitFor(function () {
-            return (bool) $this->getElement();
+        list($result, $actualTime, $maxTime) = $this->waitFor(function () {
+            return (bool) $this->getElement(true);
         }, $time);
 
         if ($result !== true) {
-            throw new \LogicException(sprintf('Waiting for existence of element >> %s << timed out. Waited for %.2f seconds.', $this->expression(),$time / 1000));
+            throw new \LogicException(sprintf('Waiting for existence of element >> %s << timed out. Waited for %.2f / %.2f seconds.', $this->expression(),$actualTime / 1000, $maxTime / 1000));
         }
 
         return $this->exists();
@@ -550,12 +550,12 @@ class CssElement
      */
     public function waitForNotExists($time = NULL): CssElement
     {
-        $result = $this->waitFor(function () {
-            return !$this->getElement();
+        list($result, $actualTime, $maxTime) = $this->waitFor(function () {
+            return !$this->getElement(true);
         }, $time);
 
         if ($result !== true) {
-            throw new \LogicException(sprintf('Waiting for element to NOT exist >> %s << timed out. Waited for %.2f seconds.', $this->expression(),$time / 1000));
+            throw new \LogicException(sprintf('Waiting for element to NOT exist >> %s << timed out. Waited for %.2f / %.2f seconds.', $this->expression(),$actualTime / 1000, $maxTime / 1000));
         }
 
         return $this;
@@ -571,8 +571,8 @@ class CssElement
     public function waitForVisible($time = NULL): CssElement
     {
         $time = $time ?: $this->defaultTimeout;
-        $result = $this->waitFor(function () {
-            $element = $this->getElement();
+        list($result, $actualTime, $maxTime) = $this->waitFor(function () {
+            $element = $this->getElement(true);
 
             if (!$element) {
                 return false;
@@ -584,7 +584,7 @@ class CssElement
         }, $time);
 
         if ($result !== true) {
-            throw new \LogicException(sprintf('Waiting for visibility of element >> %s << timed out. Waited for %.2f seconds.', $this->expression(),$time / 1000));
+            throw new \LogicException(sprintf('Waiting for visibility of element >> %s << timed out. Waited for %.2f / %.2f seconds.', $this->expression(),$actualTime / 1000, $maxTime / 1000));
         }
 
         return $this;
@@ -593,8 +593,8 @@ class CssElement
     public function waitForNotVisible($time = NULL, $notExistingIsOkay = false): CssElement
     {
         $time = $time ?: $this->defaultTimeout;
-        $result = $this->waitFor(function () use ($notExistingIsOkay) {
-            $element = $this->getElement();
+        list($result, $actualTime, $maxTime) = $this->waitFor(function () use ($notExistingIsOkay) {
+            $element = $this->getElement(true);
 
             if (!$element) {
                 return $notExistingIsOkay; // false: continue waiting
@@ -604,7 +604,7 @@ class CssElement
         }, $time);
 
         if ($result === false) {
-            throw new \LogicException(sprintf('Waiting for element to disappear >> %s << timed out. Waited for %.2f seconds.', $this->expression(),$time / 1000));
+            throw new \LogicException(sprintf('Waiting for element to disappear >> %s << timed out. Waited for %.2f seconds.', $this->expression(),$actualTime / 1000, $maxTime / 1000));
         }
 
         return $this;
@@ -628,7 +628,7 @@ class CssElement
      *
      * @param \Closure $condition
      * @param null $time
-     * @return bool
+     * @return list($result, float, float) the result, the actualTime waited in milliseconds, the maxTime to wait in milliseconds
      */
     public function waitFor(\Closure $condition, $time = NULL)
     {
@@ -639,10 +639,15 @@ class CssElement
 
         do {
             $result = $condition();
-            usleep(100000); // 100 ms
-        } while (microtime(true) < $end && !$result);
 
-        return (bool) $result;
+            if (!$result) {
+                usleep(100000); // 100 ms
+            }
+        } while (($now = microtime(true)) < $end && !$result);
+
+        $actualTime = $now - $start;
+
+        return [$result, $actualTime * 1000, $time];
     }
 
     private function getWebDriverSession(): \WebDriver\Session
