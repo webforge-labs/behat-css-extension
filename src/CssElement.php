@@ -679,13 +679,15 @@ class CssElement
      *
      * @param string $substr
      */
-    public function containsValue($substr)
+    public function containsValue($substr) : CssElement
     {
         $this->assertThat(
             $this->generateMessage('%s.val().contains()'),
             $this->getValue(),
             Matchers::containsString($substr)
         );
+
+        return $this;
     }
 
     public function getValue()
