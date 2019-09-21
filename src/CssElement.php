@@ -482,6 +482,25 @@ class CssElement
         return $this;
     }
 
+
+    /**
+     * Asserts that substr is in the text value
+     *
+     * @param string $substr
+     * @return CssElement
+     */
+    public function containsNotText($substr)
+    {
+        $this->assertThat(
+            $this->generateMessage('%s:not(contains())'),
+            $this->getText(),
+            Matchers::not(Matchers::containsString($substr))
+        );
+
+        return $this;
+    }
+
+
     /**
      * Asserts that the inner text equals the value
      *
@@ -747,6 +766,8 @@ class CssElement
                 "done();\n" .
             "\n})"
         );
+
+        return $this;
     }
 
     protected function executeAsync($script, array $args = [])
