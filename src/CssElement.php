@@ -518,14 +518,14 @@ class CssElement
     /**
      * Asserts that the (inner?) html equals the value
      *
-     * @param string $value
+     * @param string|Matcher $value
      */
     public function hasHtml($value, $inner = true)
     {
         $this->assertThat(
             $this->generateMessage($inner ? '%s.innerHtml()' : '%s.outerHtml()'),
             $inner ? $this->getHtml() : $this->getOuterHtml(),
-            Matchers::equalTo($value)
+            is_string($value) ? Matchers::equalTo($value) : $value
         );
     }
 
