@@ -389,7 +389,7 @@ class CssElement
     /**
      * Asserts that a certain html attribute has the value
      * @param string $name
-     * @param string $value to be matched
+     * @param string|Matcher $value to be matched
      * @return null|string
      */
     public function hasAttribute($name, $value)
@@ -397,7 +397,7 @@ class CssElement
         $this->assertThat(
             $this->generateMessage('%s ->hasAttribute("%s", %s)', $name, json_encode($value)),
             $this->ensureElement()->getAttribute($name),
-            Matchers::equalTo($value)
+            is_string($value) ? Matchers::equalTo($value) : $value
         );
 
         return $this;
@@ -504,14 +504,14 @@ class CssElement
     /**
      * Asserts that the inner text equals the value
      *
-     * @param string $value
+     * @param string|Matcher $value
      */
     public function hasText($value)
     {
         $this->assertThat(
             $this->generateMessage('%s.text()'),
             $this->getText(),
-            Matchers::equalTo($value)
+            is_string($value) ? Matchers::equalTo($value) : $value
         );
     }
 
@@ -726,7 +726,7 @@ class CssElement
     }
 
     /**
-     * @param $string
+     * @param string|Matcher $string
      *
      * @return CssElement
      */
@@ -735,7 +735,7 @@ class CssElement
         $this->assertThat(
             $this->generateMessage('%s.val()'),
             $this->getValue(),
-            Matchers::equalTo($string)
+            is_string($value) ? Matchers::equalTo($value) : $value
         );
 
         return $this;
