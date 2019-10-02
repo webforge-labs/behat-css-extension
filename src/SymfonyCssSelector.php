@@ -27,7 +27,7 @@ class SymfonyCssSelector implements SelectorInterface
             $this->translator = new Translator();
 
             $this->translator->registerExtension(new HtmlExtension($this->translator));
-            $this->translator->registerExtension(new SymfonyCssExtension($this->translator));
+            $this->translator->registerExtension(new SymfonyCssExtension());
 
             $this->translator
                     ->registerParserShortcut(new EmptyStringParser())

@@ -29,6 +29,11 @@ class CssElement
     public $props;
 
     /**
+     * @var WebAssert
+     */
+    protected $assert;
+
+    /**
      * @var int in milliseconds
      */
     private $defaultTimeout = 5000;
@@ -623,7 +628,7 @@ class CssElement
         }, $time);
 
         if ($result === false) {
-            throw new \LogicException(sprintf('Waiting for element to disappear >> %s << timed out. Waited for %.2f seconds.', $this->expression(),$actualTime / 1000, $maxTime / 1000));
+            throw new \LogicException(sprintf('Waiting for element to disappear >> %s << timed out. Waited for %.2f/%.2f seconds.', $this->expression(),$actualTime / 1000, $maxTime / 1000));
         }
 
         return $this;
@@ -647,7 +652,7 @@ class CssElement
      *
      * @param \Closure $condition
      * @param null $time
-     * @return list($result, float, float) the result, the actualTime waited in milliseconds, the maxTime to wait in milliseconds
+     * @return array list($result, float, float) the result, the actualTime waited in milliseconds, the maxTime to wait in milliseconds
      */
     public function waitFor(\Closure $condition, $time = NULL)
     {
@@ -778,8 +783,8 @@ class CssElement
 
         try {
             return $wdSession->execute_async(['script' => $script, 'args' => $args]);
-        } catch (\Webdriver\Exception $e) {
-            if ($e->getCode() === \Webdriver\Exception::JAVASCRIPT_ERROR) {
+        } catch (\WebDriver\Exception $e) {
+            if ($e->getCode() === \WebDriver\Exception::JAVASCRIPT_ERROR) {
                 $e = new \RuntimeException("Failed to execute Javascript: \n\n".$script.' '.$e->getMessage(), 0, $e);
             }
 

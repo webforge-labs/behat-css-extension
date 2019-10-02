@@ -8,8 +8,10 @@ _default:
     #  Custom action can be added by provided a relative path the the php script. Example:
     #   - relative/path/to/your-own-sript.php
     prerequisites:
-     - working-copy-check
-     - display-last-changes
+      - command:
+          cmd: "vendor\\bin\\phpstan analyse -l 1 src"
+      - working-copy-check
+      - display-last-changes
 
     # GENERAL CONFIG
     #  Apply to all branches except the one from the 'branch-specific' section
