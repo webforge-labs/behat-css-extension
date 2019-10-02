@@ -726,11 +726,11 @@ class CssElement
     }
 
     /**
-     * @param string|Matcher $string
+     * @param string|Matcher $value
      *
      * @return CssElement
      */
-    public function hasValue($string)
+    public function hasValue($value)
     {
         $this->assertThat(
             $this->generateMessage('%s.val()'),
