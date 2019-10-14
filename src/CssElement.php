@@ -196,6 +196,12 @@ class CssElement
     {
         $elements = $this->getElements();
 
+        $this->assertThat(
+            $this->generateMessage('%s.eq('.$index.')'),
+            $elements,
+            Matchers::hasKeyInArray($index)
+        );
+
         return $this->css(['.eq('.$index.')', $elements[$index]]);
     }
 
