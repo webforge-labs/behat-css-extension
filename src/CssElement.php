@@ -758,12 +758,32 @@ class CssElement
      * @param string $expression the part coming after the jQuery selector for this element
      * @return string
      */
-    public function evaluatejQueryExpression($expression)
+    public function evaluatejQueryExpression($expression): string
     {
         $this->executeAsync(
             $this->defineWithJQuery()."\n".
             "\nwithJQuery(function(jQuery) {\n" .
                 "done(".$this->expression() . $expression.");\n" .
+            "\n})"
+        );
+    }
+
+
+    /**
+     * Runs asynchron code with jQuery
+     * $code will be called with the first parameter as a jquery instance of the element() and a second with a callback done
+     * if an argument is passed to done it will be return by this method
+     * @param string $code
+     * @return string
+     */
+    public function evaluateWithjQuery(string $code): string
+    {
+        return $this->executeAsync(
+            $this->defineWithJQuery()."\n".
+            "\nwithJQuery(function(jQuery) {\n" .
+                "    var todo = $code;\n".
+                "    var jqueryElement = ".$this->expression()."\n\n".
+                "    todo(jqueryElement, done);\n" .
             "\n})"
         );
     }
@@ -781,7 +801,7 @@ class CssElement
         return $this;
     }
 
-    protected function executeAsync($script, array $args = [])
+    protected function executeAsync($script, array $args = []): string
     {
         $script = 'var done = arguments['.count($args).']; ' . $script;
 
