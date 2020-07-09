@@ -756,11 +756,11 @@ class CssElement
      * use  jQery-Hack if nothing other works
      *
      * @param string $expression the part coming after the jQuery selector for this element
-     * @return string
+     * @return mixed
      */
-    public function evaluatejQueryExpression($expression): string
+    public function evaluatejQueryExpression($expression)
     {
-        $this->executeAsync(
+        return $this->executeAsync(
             $this->defineWithJQuery()."\n".
             "\nwithJQuery(function(jQuery) {\n" .
                 "done(".$this->expression() . $expression.");\n" .
@@ -801,7 +801,7 @@ class CssElement
         return $this;
     }
 
-    protected function executeAsync($script, array $args = []): string
+    protected function executeAsync($script, array $args = [])
     {
         $script = 'var done = arguments['.count($args).']; ' . $script;
 
