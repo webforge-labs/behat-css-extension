@@ -774,9 +774,9 @@ class CssElement
      * $code will be called with the first parameter as a jquery instance of the element() and a second with a callback done
      * if an argument is passed to done it will be return by this method
      * @param string $code
-     * @return string
+     * @return mixed
      */
-    public function evaluateWithjQuery(string $code): string
+    public function evaluateWithjQuery(string $code)
     {
         return $this->executeAsync(
             $this->defineWithJQuery()."\n".
