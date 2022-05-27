@@ -13,3 +13,6 @@ composer *args='':
 
 unit filter:
     just phpunit --filter {{filter}}
+
+release-major:
+    release-it --release-version -i major
