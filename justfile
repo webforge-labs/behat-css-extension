@@ -1,5 +1,7 @@
 set positional-arguments
 
+set dotenv-load := true
+
 php := "docker-compose exec php"
 
 phpunit *args='':
@@ -14,5 +16,5 @@ composer *args='':
 unit filter:
     just phpunit --filter {{filter}}
 
-release-major:
-    release-it --release-version -i major
+release:
+    release-it
