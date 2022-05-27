@@ -227,7 +227,7 @@ final class CssElement
      *
      * @return CssElement
      */
-    public function end(): ?CssElement
+    public function end(): CssElement
     {
         if (!isset($this->context)) {
             throw new \LogicException('End of the context: no end() to be returned');
