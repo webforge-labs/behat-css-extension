@@ -1,1 +1,0 @@
-vendor/bin/phpstan analyse --level=1 src
