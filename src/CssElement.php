@@ -1,7 +1,7 @@
 <?php
 namespace Webforge\Behat;
 
-use Behat\Mink\Element\ElementInterface;
+use Behat\Mink\Element\DocumentElement;
 use Behat\Mink\Element\NodeElement;
 use Behat\Mink\Session;
 use Behat\Mink\WebAssert;
@@ -11,7 +11,7 @@ use Hamcrest\Matchers;
 use LogicException;
 use RuntimeException;
 
-class CssElement
+final class CssElement
 {
     /**
      * Used in find() for all selectors
@@ -38,8 +38,8 @@ class CssElement
      */
     private $defaultTimeout = 5000;
 
-    /**b
-     * @var array|string
+    /**
+     * @var string|false
      */
     protected $subSelector;
 
@@ -54,22 +54,19 @@ class CssElement
     protected $session;
 
     /**
-     * @var CssElement
+     * @var CssElement|null
      */
     protected $context;
 
     /**
-     * @var null
+     * @var null|NodeElement|DocumentElement
      */
     private $element;
 
     /**
      * Creates a new css assertion chain
      *
-     * @param string|array $selector the css selector to start with
-     * @param WebAssert    $assertSession
-     * @param Session      $session
-     * @param CssElement   $context
+     * @param string|array{string, NodeElement|DocumentElement|null} $selector the css selector to start with
      */
     public function __construct($selector, WebAssert $assertSession, Session $session, CssElement $context = NULL)
     {
@@ -81,7 +78,7 @@ class CssElement
 
         if (is_array($selector)) {
             list ($this->subExpression, $this->element) = $selector;
-            $this->subSelector = FALSE;
+            $this->subSelector = false;
         } else {
             $this->element = NULL; // will be set with find(), then
             $this->subSelector = $selector;
@@ -94,11 +91,11 @@ class CssElement
      *
      * @return string
      */
-    public function cssSelector()
+    public function cssSelector(): string
     {
         $selector = $this->context ? $this->context->cssSelector() . ' ' : '';
 
-        if ($this->subSelector === FALSE) {
+        if ($this->subSelector === false) {
             return '<< no valid css selector >>';
         } else {
             $selector .= $this->subSelector;
@@ -112,7 +109,7 @@ class CssElement
      *
      * @return string
      */
-    public function expression()
+    public function expression(): string
     {
         $expression = $this->context ? $this->context->expression() : '';
         $expression .= $this->subExpression;
@@ -122,11 +119,13 @@ class CssElement
 
 
     /**
-     * @return NodeElement|NULL
+     * @param bool $refresh
+     *@return NodeElement|DocumentElement|null
      */
-    public function getElement($refresh = false)
+    public function getElement(bool $refresh = false)
     {
         if (!isset($this->element) || $refresh) {
+            assert(is_string($this->subSelector), 'you cannot get an element if the subSelector is not set');
             $this->element = $this->contextElement()->find(self::MINK_SELECTOR, $this->subSelector);
         }
 
@@ -147,15 +146,19 @@ class CssElement
             throw new RuntimeException(sprintf("The element %s cannot be found", $this->expression()));
         }
 
+        if ($element instanceof DocumentElement) {
+            throw new \RuntimeException('The document does not support this method');
+        }
+
         return $element;
     }
 
     /**
       * @return NodeElement[]
       */
-    public function getElements()
+    public function getElements(): array
     {
-        if ($this->subSelector === FALSE) {
+        if ($this->subSelector === false) {
             throw new LogicException('Cannot get elements() from this selector, because it was not used purely with css selectors. This expression cannot be resolved to elements: ' . $this->expression());
         }
 
@@ -164,16 +167,17 @@ class CssElement
 
 
     /**
-     * @return NodeElement|NULL
+     * @return NodeElement|DocumentElement
      */
     protected function contextElement()
     {
         return $this->context ? $this->context->ensureElement() : $this->session->getPage();
     }
+
     /**
      * @return CssElement[]
      */
-    public function all()
+    public function all(): array
     {
         // wrap all found elements in cssElements with a custom expression
         return array_map(
@@ -192,7 +196,7 @@ class CssElement
      *
      * @return CssElement
      */
-    public function eq($index)
+    public function eq(int $index): CssElement
     {
         $elements = $this->getElements();
 
@@ -207,11 +211,11 @@ class CssElement
 
 
     /**
-     * @param string|array $selector the css selector that will find a child/children of the current element
+     * @param string|array{string, NodeElement|DocumentElement|null} $selector the css selector that will find a child/children of the current element
      *
      * @return CssElement
      */
-    public function css($selector)
+    public function css($selector): CssElement
     {
         return new self($selector, $this->assert, $this->session, $this);
     }
@@ -221,21 +225,22 @@ class CssElement
      *
      * note this is NOT the same as calling parent() !
      *
-     * @return CssElement|NULL
+     * @return CssElement
      */
-    public function end()
+    public function end(): ?CssElement
     {
+        if (!isset($this->context)) {
+            throw new \LogicException('End of the context: no end() to be returned');
+        }
+
         return $this->context;
     }
 
-    /**
-     * @return CssElement
-     */
-    public function parent()
+    public function parent(): CssElement
     {
         $parentElement = $this->ensureElement()->find('xpath', '..');
 
-        return $this->css(array('.parent()', $parentElement));
+        return $this->css(['.parent()', $parentElement]);
     }
 
 
@@ -246,9 +251,9 @@ class CssElement
      *
      * @return CssElement
      */
-    public function closest($filter)
+    public function closest(string $filter): CssElement
     {
-        $xpath = $this->session->getSelectorsHandler()
+        $xpath = $this->session->getSelectorsHandler() // @phpstan-ignore-line we hacked the second parameter here as optional
             ->getSelector(self::MINK_SELECTOR)
                 ->translateToXPath($filter, 'ancestor::');
 
@@ -265,7 +270,7 @@ class CssElement
      *
      * @return CssElement
      */
-    public function exists()
+    public function exists(): CssElement
     {
         $this->ensureElement();
 
@@ -277,7 +282,7 @@ class CssElement
      *
      * @return CssElement
      */
-    public function isVisible()
+    public function isVisible(): CssElement
     {
         $this->assertThat(
             $this->generateMessage('%s should be visible'),
@@ -288,10 +293,7 @@ class CssElement
         return $this;
     }
 
-    /**
-     * @return CssElement
-     */
-    public function isNotVisible()
+    public function isNotVisible(): CssElement
     {
         $this->assertThat(
             $this->generateMessage('%s should NOT be visible'),
@@ -309,7 +311,7 @@ class CssElement
      *
      * @return CssElement
      */
-    public function count($numberOfElements)
+    public function count($numberOfElements): CssElement
     {
         if (!($numberOfElements instanceof Matcher)) {
             $numberOfElements = Matchers::equalTo($numberOfElements);
@@ -324,10 +326,7 @@ class CssElement
         return $this;
     }
 
-    /**
-     * @return int
-     */
-    public function getCount()
+    public function getCount(): int
     {
         return count($this->getElements());
     }
@@ -337,7 +336,7 @@ class CssElement
      *
      * @return CssElement
      */
-    public function notExists()
+    public function notExists(): CssElement
     {
         return $this->count(0);
     }
@@ -347,7 +346,7 @@ class CssElement
      *
      * @return CssElement
      */
-    public function click()
+    public function click(): CssElement
     {
         try {
             $this->ensureElement()->click();
@@ -359,13 +358,13 @@ class CssElement
     }
 
     /**
-     * @param $locator
-     * @param $value
+     * @param string $locator
+     * @param string $value
      *
      * @return CssElement
      * @throws \Behat\Mink\Exception\ElementNotFoundException
      */
-    public function fillField($locator, $value)
+    public function fillField(string $locator, string $value): CssElement
     {
         $this->ensureElement()->fillField($locator, $value);
 
@@ -373,13 +372,13 @@ class CssElement
     }
 
     /**
-     * @param $locator
+     * @param string $locator
      *
      * @return CssElement
      *
      * @throws \Behat\Mink\Exception\ElementNotFoundException
      */
-    public function checkField($locator)
+    public function checkField(string $locator): CssElement
     {
         $this->ensureElement()->checkField($locator);
 
@@ -390,9 +389,8 @@ class CssElement
      * Get an HTML Attribute from the current element
      *
      * @param string $name of the attribute
-     * @return string
      */
-    public function getAttribute($name)
+    public function getAttribute(string $name): ?string
     {
         return $this->ensureElement()->getAttribute($name);
     }
@@ -401,9 +399,9 @@ class CssElement
      * Asserts that a certain html attribute has the value
      * @param string $name
      * @param string|Matcher $value to be matched
-     * @return null|string
+     * @return CssElement
      */
-    public function hasAttribute($name, $value)
+    public function hasAttribute(string $name, $value): CssElement
     {
         $this->assertThat(
             $this->generateMessage('%s ->hasAttribute("%s", %s)', $name, json_encode($value)),
@@ -421,7 +419,7 @@ class CssElement
      *
      * @return CssElement
      */
-    public function hasClass($className) : CssElement
+    public function hasClass(string $className) : CssElement
     {
         $this->assertThat(
             $this->generateMessage('%s ->hasClass("%s")', $className),
@@ -437,7 +435,7 @@ class CssElement
      *
      * @return string
      */
-    public function getHtml()
+    public function getHtml(): string
     {
         return $this->ensureElement()->getHtml();
     }
@@ -447,7 +445,7 @@ class CssElement
      *
      * @return string
      */
-    public function getOuterHtml()
+    public function getOuterHtml(): string
     {
         return $this->ensureElement()->getOuterHtml();
     }
@@ -457,7 +455,7 @@ class CssElement
      *
      * @return string
      */
-    public function getText()
+    public function getText(): string
     {
         return $this->ensureElement()->getText();
     }
@@ -467,7 +465,7 @@ class CssElement
      *
      * @return string[]
      */
-    public function getTexts()
+    public function getTexts(): array
     {
         $texts = [];
         foreach ($this->all() as $element) {
@@ -482,7 +480,7 @@ class CssElement
      * @param string $substr
      * @return CssElement
      */
-    public function containsText($substr)
+    public function containsText(string $substr): CssElement
     {
         $this->assertThat(
             $this->generateMessage('%s:contains()'),
@@ -500,7 +498,7 @@ class CssElement
      * @param string $substr
      * @return CssElement
      */
-    public function containsNotText($substr)
+    public function containsNotText(string $substr): CssElement
     {
         $this->assertThat(
             $this->generateMessage('%s:not(contains())'),
@@ -516,28 +514,33 @@ class CssElement
      * Asserts that the inner text equals the value
      *
      * @param string|Matcher $value
+     * @return CssElement
      */
-    public function hasText($value)
+    public function hasText($value): CssElement
     {
         $this->assertThat(
             $this->generateMessage('%s.text()'),
             $this->getText(),
             is_string($value) ? Matchers::equalTo($value) : $value
         );
+
+        return $this;
     }
 
     /**
      * Asserts that the (inner?) html equals the value
      *
      * @param string|Matcher $value
+     * @return CssElement
      */
-    public function hasHtml($value, $inner = true)
+    public function hasHtml($value, bool $inner = true): CssElement
     {
         $this->assertThat(
             $this->generateMessage($inner ? '%s.innerHtml()' : '%s.outerHtml()'),
             $inner ? $this->getHtml() : $this->getOuterHtml(),
             is_string($value) ? Matchers::equalTo($value) : $value
         );
+        return $this;
     }
 
     /**
@@ -545,11 +548,11 @@ class CssElement
      *
      * note: needs @javascript in scenario
      *
-     * @param  int $time in ms
+     * @param int|null $time in ms
      *
      * @return CssElement
      */
-    public function waitForExists($time = NULL): CssElement
+    public function waitForExists(int $time = NULL): CssElement
     {
         $time = $time ?: $this->defaultTimeout;
 
@@ -564,7 +567,10 @@ class CssElement
         return $this->exists();
     }
 
-    public function waitForExist($time = NULL): CssElement
+    /**
+     * @param int|null $time
+     */
+    public function waitForExist(int $time = NULL): CssElement
     {
         return $this->waitForExists($time);
     }
@@ -574,11 +580,11 @@ class CssElement
      *
      * note: needs @javascript in scenario
      *
-     * @param  int $time in ms
+     * @param int|null $time in ms
      *
      * @return CssElement
      */
-    public function waitForNotExists($time = NULL): CssElement
+    public function waitForNotExists(int $time = NULL): CssElement
     {
         list($result, $actualTime, $maxTime) = $this->waitFor(function () {
             return !$this->getElement(true);
@@ -594,11 +600,11 @@ class CssElement
     /**
      * Waits for an element to become visible
      *
-     * @param $time
+     * @param int|null $time
      *
      * @return CssElement
      */
-    public function waitForVisible($time = NULL): CssElement
+    public function waitForVisible(int $time = NULL): CssElement
     {
         $time = $time ?: $this->defaultTimeout;
         list($result, $actualTime, $maxTime) = $this->waitFor(function () {
@@ -606,6 +612,10 @@ class CssElement
 
             if (!$element) {
                 return false;
+            }
+
+            if ($element instanceof DocumentElement) {
+                throw new \RuntimeException('The document does not support isVisible()');
             }
 
             $result = $element->isVisible();
@@ -620,7 +630,11 @@ class CssElement
         return $this;
     }
 
-    public function waitForNotVisible($time = NULL, $notExistingIsOkay = false): CssElement
+    /**
+     * @param int|null $time
+     * @param bool $notExistingIsOkay
+     */
+    public function waitForNotVisible(int $time = NULL, bool $notExistingIsOkay = false): CssElement
     {
         $time = $time ?: $this->defaultTimeout;
         list($result, $actualTime, $maxTime) = $this->waitFor(function () use ($notExistingIsOkay) {
@@ -628,6 +642,10 @@ class CssElement
 
             if (!$element) {
                 return $notExistingIsOkay; // false: continue waiting
+            }
+
+            if ($element instanceof DocumentElement) {
+                throw new \RuntimeException('The document does not support isVisible()');
             }
 
             return !$element->isVisible();
@@ -643,10 +661,9 @@ class CssElement
     /**
      * Generates a message where the first string (%s) is a jquery-expression for the element itself
      *
-     * @param $format
-     * @return string
+     * @param string $format
      */
-    private function generateMessage($format)
+    private function generateMessage(string $format): string
     {
         $args = array_slice(func_get_args(), 1);
         array_unshift($args, $this->expression());
@@ -657,10 +674,10 @@ class CssElement
      * Waits for $condition to become true
      *
      * @param \Closure $condition
-     * @param null $time
-     * @return array list($result, float, float) the result, the actualTime waited in milliseconds, the maxTime to wait in milliseconds
+     * @param int|null $time
+     * @return array{mixed, float, float} the result, the actualTime waited in milliseconds, the maxTime to wait in milliseconds
      */
-    public function waitFor(\Closure $condition, $time = NULL)
+    public function waitFor(\Closure $condition, int $time = null): array
     {
         $time = $time ?: $this->defaultTimeout;
 
@@ -685,7 +702,13 @@ class CssElement
         return $this->session->getDriver()->getWebDriverSession();
     }
 
-    private function assertThat($messagePart, $value, $matcher)
+    /**
+     * @param string $messagePart
+     * @param mixed $value
+     * @param Matcher $matcher
+     * @return void
+     */
+    private function assertThat(string $messagePart, $value, Matcher $matcher)
     {
         MatcherAssert::assertThat(
             $messagePart,
@@ -694,10 +717,7 @@ class CssElement
         );
     }
 
-    /**
-     * @return CssElement
-     */
-    public function mouseOver()
+    public function mouseOver(): CssElement
     {
         $this->ensureElement()->mouseOver();
 
@@ -709,7 +729,7 @@ class CssElement
      *
      * @param string $substr
      */
-    public function containsValue($substr) : CssElement
+    public function containsValue(string $substr) : CssElement
     {
         $this->assertThat(
             $this->generateMessage('%s.val().contains()'),
@@ -720,17 +740,18 @@ class CssElement
         return $this;
     }
 
+    /**
+     * @return array<int|string, mixed>|bool|string|null
+     */
     public function getValue()
     {
         return $this->ensureElement()->getValue();
     }
 
     /**
-     * @param $value
-     *
-     * @return CssElement
+     * @param string|bool|array<int|string, mixed> $value
      */
-    public function setValue($value)
+    public function setValue($value): CssElement
     {
         $this->ensureElement()->setValue($value);
         return $this;
@@ -738,10 +759,9 @@ class CssElement
 
     /**
      * @param string|Matcher $value
-     *
      * @return CssElement
      */
-    public function hasValue($value)
+    public function hasValue($value): CssElement
     {
         $this->assertThat(
             $this->generateMessage('%s.val()'),
@@ -758,7 +778,7 @@ class CssElement
      * @param string $expression the part coming after the jQuery selector for this element
      * @return mixed
      */
-    public function evaluatejQueryExpression($expression)
+    public function evaluatejQueryExpression(string $expression)
     {
         return $this->executeAsync(
             $this->defineWithJQuery()."\n".
@@ -788,7 +808,7 @@ class CssElement
         );
     }
 
-    public function scrollIntoView($alignToTop)
+    public function scrollIntoView(bool $alignToTop): CssElement
     {
         $this->executeAsync(
             $this->defineWithJQuery()."\n".
@@ -801,7 +821,12 @@ class CssElement
         return $this;
     }
 
-    protected function executeAsync($script, array $args = [])
+    /**
+     * @param string[] $args
+     * @return mixed
+     * @throws \WebDriver\Exception
+     */
+    protected function executeAsync(string $script, array $args = [])
     {
         $script = 'var done = arguments['.count($args).']; ' . $script;
 
@@ -818,7 +843,7 @@ class CssElement
         }
     }
 
-    protected function defineWithJQuery()
+    protected function defineWithJQuery(): string
     {
         return /** @lang JavaScript */ <<<'JS'
             var withJQuery = function(callback) {

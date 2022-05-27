@@ -18,9 +18,9 @@ class SymfonyCssExtension extends AbstractExtension
      */
     public function getFunctionTranslators(): array
     {
-        return array(
-            'has' => array($this, 'translateHas')
-        );
+        return [
+            'has' => [$this, 'translateHas']
+        ];
     }
 
     /**

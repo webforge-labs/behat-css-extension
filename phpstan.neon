@@ -1,0 +1,13 @@
+#includes:
+#    - vendor/phpstan/phpstan-phpunit/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - src
+
+    parallel:
+        processTimeout: 400.0
+
+#    bootstrapFiles:
+#        - vendor/bin/.phpunit/phpunit/vendor/autoload.php

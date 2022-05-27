@@ -16,12 +16,9 @@ use Symfony\Component\CssSelector\XPath\Translator;
   */
 class SymfonyCssSelector implements SelectorInterface
 {
-    /**
-     * @var Translator
-     */
-    private $translator;
+    private ?Translator $translator = null;
 
-    protected function getTranslator() : Translator
+    protected function getTranslator(): Translator
     {
         if (!isset($this->translator)) {
             $this->translator = new Translator();
@@ -43,12 +40,12 @@ class SymfonyCssSelector implements SelectorInterface
     /**
      * Translates CSS into XPath.
      *
-     * @param string|array $locator current selector locator
+     * @param string|array<mixed> $locator current selector locator
      * @param string $prefix xpath prefix
      *
      * @return string
      */
-    public function translateToXPath($locator)
+    public function translateToXPath($locator /*, $prefix */)
     {
         if (!is_string($locator)) {
             throw new \InvalidArgumentException('The CssSelector expects to get a string as locator');

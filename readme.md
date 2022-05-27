@@ -78,7 +78,7 @@ class MyFeatureContext extends MinkContext implements Context
 }
 ```
 
- - use $this->css($selecto) to start from document, $selector is a valid css3 selector (support bei `symfony/css-selector`) 
+ - use $this->css($selector) to start from document, $selector is a valid css3 selector (supported by `symfony/css-selector`) 
  - set $this->context to whatever dialog/page/subarea you want to select elements
  - use $this->context() to start from context
  - use $this->resetContext() to reset context to document
