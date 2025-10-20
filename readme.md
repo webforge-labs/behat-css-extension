@@ -24,8 +24,73 @@ you need to install (additional to your normal behat setup):
 "behat/mink-selenium2-driver": "^1.3",
 ```
 
+or (to use selenium 4)
+```
+behat/behat
+behat/mink
+friends-of-behat/mink-extension
+friends-of-behat/symfony-extension
+lullabot/mink-selenium2-driver
+```
+
 use those dependencies in your dev-dependencies.
 
+## docker
+
+```yaml
+services:
+    selenium:
+        image: selenium/hub:4.27
+        environment:
+            - TZ=Europe/Berlin
+
+    selenium_chrome:
+        image: selenium/node-chrome:4.27
+        shm_size: 2gb
+        volumes:
+            - /dev/shm:/dev/shm
+        depends_on:
+            - selenium
+        environment:
+            - SE_EVENT_BUS_HOST=selenium
+            - SE_EVENT_BUS_PUBLISH_PORT=4442
+            - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+            - NODE_MAX_INSTANCES=3
+            - NODE_MAX_SESSION=6
+            - TZ=Europe/Berlin
+            - LANG_WHICH=de
+            - LANG_WHERE=DE
+            - LANGUAGE=de_DE.UTF-8
+            - LANG=de_DE.UTF-8
+```
+
+## behat.yaml
+
+```yaml
+default:
+    extensions:
+        FriendsOfBehat\SymfonyExtension:
+            kernel:
+                class: \Kernel
+                environment: test
+
+        Behat\MinkExtension:
+            base_url: http://web.local.testing
+            sessions:
+                selenium:
+                    selenium2:
+                        browser: chrome
+                        wd_host: "selenium:4444/wd/hub"
+                        capabilities:
+                            extra_capabilities:
+                                acceptSslCerts: true
+                                acceptInsecureCerts: true
+                            chrome:
+                                switches: [ "window-size=1280,900", "ignore-certificate-errors", "no-sandbox" ]
+                                prefs:
+                                    intl:
+
+```
 
 ## usage
 
