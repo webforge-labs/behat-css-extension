@@ -13,8 +13,11 @@
     "php": ">=7.4",
     "hamcrest/hamcrest-php": "^2.0",
     "behat/mink-extension": "*",
-    "behat/mink-selenium2-driver": "*",
     "symfony/css-selector": ">=5"
+  },
+  "suggest": {
+    "behat/mink-selenium2-driver": "For Selenium 2/3 support with legacy JSONWire protocol",
+    "lullabot/mink-selenium2-driver": "For Selenium 4 support with W3C WebDriver protocol"
   },
   "autoload": {
     "psr-4": {
@@ -25,7 +28,7 @@
   },
   "extra": {
       "branch-alias": {
-          "dev-master": "2.0.x-dev"
+          "dev-master": "4.0.x-dev"
       }
   },
   "require-dev": {
