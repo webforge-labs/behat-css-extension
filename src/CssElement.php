@@ -68,7 +68,7 @@ final class CssElement
      *
      * @param string|array{string, NodeElement|DocumentElement|null} $selector the css selector to start with
      */
-    public function __construct($selector, WebAssert $assertSession, Session $session, CssElement $context = NULL)
+    public function __construct($selector, WebAssert $assertSession, Session $session, ?CssElement $context = null)
     {
         $this->assert = $assertSession;
         $this->session = $session;

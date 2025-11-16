@@ -1,5 +1,3 @@
-version: '3'
-
 services:
     php:
         image: behat-css-extension:dev

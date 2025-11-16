@@ -42,7 +42,6 @@ class SymfonyCssSelector implements SelectorInterface
      *
      * @param string|array<mixed> $locator current selector locator
      * @param string $prefix xpath prefix
-     *
      * @return string
      */
     public function translateToXPath($locator /*, $prefix */)
