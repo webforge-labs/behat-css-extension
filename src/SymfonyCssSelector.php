@@ -24,7 +24,6 @@ class SymfonyCssSelector implements SelectorInterface
             $this->translator = new Translator();
 
             $this->translator->registerExtension(new HtmlExtension($this->translator));
-            $this->translator->registerExtension(new SymfonyCssExtension());
 
             $this->translator
                     ->registerParserShortcut(new EmptyStringParser())
@@ -41,7 +40,6 @@ class SymfonyCssSelector implements SelectorInterface
      * Translates CSS into XPath.
      *
      * @param string|array<mixed> $locator current selector locator
-     * @param string $prefix xpath prefix
      * @return string
      */
     public function translateToXPath($locator /*, $prefix */)

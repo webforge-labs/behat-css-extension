@@ -552,7 +552,7 @@ final class CssElement
      *
      * @return CssElement
      */
-    public function waitForExists(int $time = NULL): CssElement
+    public function waitForExists(?int $time = NULL): CssElement
     {
         $time = $time ?: $this->defaultTimeout;
 
@@ -570,7 +570,7 @@ final class CssElement
     /**
      * @param int|null $time
      */
-    public function waitForExist(int $time = NULL): CssElement
+    public function waitForExist(?int $time = NULL): CssElement
     {
         return $this->waitForExists($time);
     }
@@ -584,7 +584,7 @@ final class CssElement
      *
      * @return CssElement
      */
-    public function waitForNotExists(int $time = NULL): CssElement
+    public function waitForNotExists(?int $time = NULL): CssElement
     {
         list($result, $actualTime, $maxTime) = $this->waitFor(function () {
             return !$this->getElement(true);
@@ -604,7 +604,7 @@ final class CssElement
      *
      * @return CssElement
      */
-    public function waitForVisible(int $time = NULL): CssElement
+    public function waitForVisible(?int $time = NULL): CssElement
     {
         $time = $time ?: $this->defaultTimeout;
         list($result, $actualTime, $maxTime) = $this->waitFor(function () {
@@ -634,7 +634,7 @@ final class CssElement
      * @param int|null $time
      * @param bool $notExistingIsOkay
      */
-    public function waitForNotVisible(int $time = NULL, bool $notExistingIsOkay = false): CssElement
+    public function waitForNotVisible(?int $time = NULL, bool $notExistingIsOkay = false): CssElement
     {
         $time = $time ?: $this->defaultTimeout;
         list($result, $actualTime, $maxTime) = $this->waitFor(function () use ($notExistingIsOkay) {
@@ -677,7 +677,7 @@ final class CssElement
      * @param int|null $time
      * @return array{mixed, float, float} the result, the actualTime waited in milliseconds, the maxTime to wait in milliseconds
      */
-    public function waitFor(\Closure $condition, int $time = null): array
+    public function waitFor(\Closure $condition, ?int $time = null): array
     {
         $time = $time ?: $this->defaultTimeout;
 
@@ -699,7 +699,13 @@ final class CssElement
 
     private function getWebDriverSession(): \WebDriver\Session
     {
-        return $this->session->getDriver()->getWebDriverSession();
+        $driver = $this->session->getDriver();
+
+        if (!method_exists($driver, 'getWebDriverSession')) {
+            throw new \RuntimeException('Driver does not support getWebDriverSession() - requires Selenium2Driver');
+        }
+
+        return $driver->getWebDriverSession();
     }
 
     /**

@@ -4,6 +4,12 @@ set dotenv-load := true
 
 php := "docker-compose exec php"
 
+compile:
+    docker compose build php
+
+up:
+    docker compose up -d
+
 phpunit *args='':
     {{php}} vendor/bin/phpunit "$@"
 
