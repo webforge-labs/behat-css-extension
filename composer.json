@@ -14,7 +14,7 @@
     "behat/behat": "^3.5",
     "behat/mink": "^1.10",
     "hamcrest/hamcrest-php": "^2.0",
-    "symfony/css-selector": "^6.0"
+    "symfony/css-selector": "^6.0 || ^7.0"
   },
   "suggest": {
     "behat/mink-extension": "For Behat/Mink integration (legacy)",
